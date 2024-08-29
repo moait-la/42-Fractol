@@ -6,7 +6,7 @@
 /*   By: moait-la <moait-la@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/28 11:31:35 by moait-la          #+#    #+#             */
-/*   Updated: 2024/08/29 23:01:06 by moait-la         ###   ########.fr       */
+/*   Updated: 2024/08/30 00:28:26 by moait-la         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,37 @@ void	init_mlx(t_fractol *fractol)
 	}
 	fractol->addr = mlx_get_data_addr(fractol->img, &fractol->bpp,
 			&fractol->line_length, &fractol->endian);
+}
+
+t_color interpolate_color(t_color start, t_color end, double factor) {
+    double smooth_factor = (1 - cos(factor * M_PI)) / 3;
+    t_color color;
+    color.r = (uint8_t)(start.r + smooth_factor * (end.r - start.r));
+    color.g = (uint8_t)(start.g + smooth_factor * (end.g - start.g));
+    color.b = (uint8_t)(start.b + smooth_factor * (end.b - start.b));
+    return color;
+}
+
+t_color get_color(int iter_nbr, t_fractol *fractol) {
+    t_color colors[4] = {
+        {180, 105, 180},  
+        {100, 255, 203},  
+        {180, 165, 0},   
+        {255, 0, 0}     
+    };
+
+    double factor = (double)iter_nbr / fractol->max_iter;
+    int num_colors = sizeof(colors) / sizeof(colors[0]);
+    int index = (int)(factor * (num_colors - 1));
+    double local_factor = (factor * (num_colors - 1)) - index;
+
+    return interpolate_color(colors[index], colors[index + 1], local_factor);
+}
+
+
+double	scale(double unscaled, double new_min, double new_max, double old_max)
+{
+	return ((new_max - new_min) * (unscaled - 0) / (old_max - 0) + new_min);
 }
 
 void	set_starting_values(t_fractol *fractol, char *name, char **av, int ac)
@@ -54,52 +85,3 @@ void	redraw_pixels(t_fractol fractol)
 		render_julia(&fractol);
 }
 
-// t_color	get_color(int iter_nbr, t_fractol *fractol)
-// {
-// 	t_color	color;
-
-// 	color.r = (iter_nbr * 3 * fractol->color_factor) + 120;
-// 	color.g = (iter_nbr * 7) * fractol->color_factor;
-// 	color.b = (iter_nbr * 9 * fractol->color_factor);
-// 	return (color);
-// }
-
-#include <complex.h>
-
-t_color interpolate_color(t_color start, t_color end, double factor) {
-    // Smoothstep function for smoother interpolation
-    double smooth_factor = (1 - cos(factor * M_PI)) / 3;
-    t_color color;
-    color.r = (uint8_t)(start.r + smooth_factor * (end.r - start.r));
-    color.g = (uint8_t)(start.g + smooth_factor * (end.g - start.g));
-    color.b = (uint8_t)(start.b + smooth_factor * (end.b - start.b));
-    return color;
-}
-
-// Color gradient transition function
-t_color get_color(int iter_nbr, t_fractol *fractol) {
-    // Define gradient colors with a vibrant palette
-    t_color colors[4] = {
-        {180, 105, 180},  // Hot Pink
-        {180, 255, 203},  // Pink
-        {180, 165, 0},    // Orange
-        {255, 0, 0}      // Red-Orange (Tomato)
-    };
-
-    // Normalize the iteration number to a value between 0 and 1
-    double factor = (double)iter_nbr / fractol->max_iter;
-    
-    // Determine the index of the start and end colors for interpolation
-    int num_colors = sizeof(colors) / sizeof(colors[0]);
-    int index = (int)(factor * (num_colors - 1));
-    double local_factor = (factor * (num_colors - 1)) - index;
-
-    // Interpolate between the current color and the next color
-    return interpolate_color(colors[index], colors[index + 1], local_factor);
-}
-
-
-double	scale(double unscaled, double new_min, double new_max, double old_max)
-{
-	return ((new_max - new_min) * (unscaled - 0) / (old_max - 0) + new_min);
-}
