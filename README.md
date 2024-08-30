@@ -24,5 +24,5 @@ and execute the program
 ./fractol [fractol_name]
 ```
 
-## Acknowledgements
+## Note
 - MinilibX is the graphical library used for rendering.
